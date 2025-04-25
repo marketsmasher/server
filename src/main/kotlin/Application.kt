@@ -1,0 +1,35 @@
+package com.marketsmasher
+
+import com.marketsmasher.plugins.configureSecurity
+import com.marketsmasher.plugins.configureSerialization
+import com.marketsmasher.repository.UserRepository
+import com.marketsmasher.plugins.configureRouting
+import com.marketsmasher.repository.StrategyRepository
+import com.marketsmasher.repository.SubscriptionRepository
+import com.marketsmasher.service.JwtService
+import com.marketsmasher.service.StrategyService
+import com.marketsmasher.service.SubscriptionService
+import com.marketsmasher.service.UserService
+import io.ktor.server.application.*
+
+fun main(args: Array<String>) {
+    io.ktor.server.netty.EngineMain.main(args)
+}
+
+fun Application.module() {
+    val userRepository = UserRepository()
+    val userService = UserService(userRepository)
+
+    val strategyRepository = StrategyRepository()
+    val strategyService = StrategyService(strategyRepository)
+
+    val subscriptionRepository = SubscriptionRepository()
+    val subscriptionService = SubscriptionService(subscriptionRepository, strategyRepository, userRepository)
+
+    val jwtService = JwtService(this, userService)
+
+    configureSerialization()
+    configureSecurity(jwtService)
+    configureRouting(userService, strategyService, subscriptionService, jwtService)
+    configureDatabases()
+}
