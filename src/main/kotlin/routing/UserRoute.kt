@@ -44,7 +44,7 @@ fun Route.userRoute(userService: UserService) {
             }
 
             val user = userService.userById(UUID.fromString(id))
-            if (user == null || user.username != extractPrincipalId(call)) {
+            if (user == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
