@@ -1,9 +1,11 @@
 package com.marketsmasher.plugins
 
 import com.marketsmasher.routing.authRoute
+import com.marketsmasher.routing.bybitRoute
 import com.marketsmasher.routing.strategyRoute
 import com.marketsmasher.routing.subscriptionRoute
 import com.marketsmasher.routing.userRoute
+import com.marketsmasher.service.BybitService
 import com.marketsmasher.service.JwtService
 import com.marketsmasher.service.StrategyService
 import com.marketsmasher.service.SubscriptionService
@@ -15,7 +17,8 @@ fun Application.configureRouting(
     userService: UserService,
     strategyService: StrategyService,
     subscriptionService: SubscriptionService,
-    jwtService: JwtService
+    jwtService: JwtService,
+    bybitService: BybitService
 ) {
     routing {
         route("/api/v1") {
@@ -23,6 +26,7 @@ fun Application.configureRouting(
             userRoute(userService)
             strategyRoute(strategyService)
             subscriptionRoute(subscriptionService)
+            bybitRoute(bybitService)
         }
     }
 }

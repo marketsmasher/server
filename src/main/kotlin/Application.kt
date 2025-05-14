@@ -6,6 +6,7 @@ import com.marketsmasher.repository.UserRepository
 import com.marketsmasher.plugins.configureRouting
 import com.marketsmasher.repository.StrategyRepository
 import com.marketsmasher.repository.SubscriptionRepository
+import com.marketsmasher.service.BybitService
 import com.marketsmasher.service.JwtService
 import com.marketsmasher.service.StrategyService
 import com.marketsmasher.service.SubscriptionService
@@ -28,8 +29,10 @@ fun Application.module() {
 
     val jwtService = JwtService(this, userService)
 
+    val bybitService = BybitService()
+
     configureSerialization()
     configureSecurity(jwtService)
-    configureRouting(userService, strategyService, subscriptionService, jwtService)
+    configureRouting(userService, strategyService, subscriptionService, jwtService, bybitService)
     configureDatabases()
 }

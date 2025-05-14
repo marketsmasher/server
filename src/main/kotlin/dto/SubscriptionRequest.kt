@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable
-class SubscriptionRequest(
+data class SubscriptionRequest(
     @Contextual
     val strategyId: UUID,
     @Contextual

@@ -16,7 +16,12 @@ import java.util.UUID
 
 fun Route.userRoute(userService: UserService) {
     route("/users") {
-        post {
+
+        get {
+            call.respond(userService.allUsers().map(User::toResponse))
+        }
+
+        post("/addUser") {
             try {
                 val user = call.receive<UserRequest>().toModel()
                 userService.addUser(user)
@@ -30,11 +35,6 @@ fun Route.userRoute(userService: UserService) {
                 call.respond(HttpStatusCode.BadRequest)
             }
         }
-
-        get {
-            call.respond(userService.allUsers().map(User::toResponse))
-        }
-
 
         get("byId/{id}") {
             val id = call.parameters["id"]

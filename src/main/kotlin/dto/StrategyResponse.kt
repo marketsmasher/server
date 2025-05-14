@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable
-class StrategyResponse(
+data class StrategyResponse(
     @Contextual
     val id: UUID,
     val name: String,
