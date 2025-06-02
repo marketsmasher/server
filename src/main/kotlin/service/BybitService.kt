@@ -2,16 +2,18 @@ package com.marketsmasher.service
 
 import com.marketsmasher.dto.KlinesRequest
 import com.marketsmasher.dto.UserRequest
-import com.marketsmasher.util.HmacSHA256
+import com.marketsmasher.model.User
+import com.marketsmasher.repository.UserRepository
+import com.marketsmasher.util.Utils
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import java.util.UUID
 
-class BybitService {
+class BybitService(private val userRepository: UserRepository) {
     private val httpClient = HttpClient()
 
     suspend fun getKlines(request: KlinesRequest): HttpResponse {
-        println(request)
         val response = httpClient.get("https://api.bybit.com/v5/market/kline") {
             url {
                 parameters.apply {
@@ -28,23 +30,43 @@ class BybitService {
         return response
     }
 
-    suspend fun validateApiKeys(userRequest: UserRequest): Boolean {
+    suspend fun getWalletBalance(id: UUID, coin: String? = null): HttpResponse {
+        val byBitHeaders = generateHeaders(id)
+        return httpClient.get("https://api.bybit.com/v5/account/wallet-balance") {
+            headers { byBitHeaders.forEach { (key, value) -> append(key, value) } }
+            coin?.let { parameter("coin", it) }
+        }
+    }
+
+    suspend fun validateCredentials(userRequest: UserRequest) {
+        println(userRequest)
         val timestamp = System.currentTimeMillis().toString()
         val recvWindow = "5000"
-        val signString = "$timestamp${userRequest.publicKey}$recvWindow" // Для GET без параметров
-
-        val signature = HmacSHA256.calc(signString, userRequest.privateKey)
-
-
-        val response = httpClient.get("https://api.bybit.com/v5/account/wallet-balance") {
+        val signString = "timestamp=$timestamp&api_key=${userRequest.publicKey}&recv_window=$recvWindow"
+        val signature = Utils.hmacSha256(userRequest.privateKey, signString)
+        println(httpClient.get("https://api.bybit.com/v5/account/wallet-balance") {
             headers {
                 append("X-BAPI-API-KEY", userRequest.publicKey)
                 append("X-BAPI-TIMESTAMP", timestamp)
                 append("X-BAPI-SIGN", signature)
                 append("X-BAPI-RECV-WINDOW", recvWindow)
             }
-        }
-        println(response)
-        return true
+            parameter("accountType", "UNIFIED")
+        })
+    }
+
+    fun generateHeaders(id: UUID): Map<String, String> {
+        val user = userRepository.userById(id)!!
+        val timestamp = System.currentTimeMillis().toString()
+        val recvWindow = "5000"
+        val signString = "timestamp=$timestamp&api_key=${user.publicKey}&recv_window=$recvWindow"
+        println(signString)
+        val signature = Utils.hmacSha256(user.privateKey, signString)
+        return mapOf(
+            "X-BAPI-API-KEY" to user.publicKey,
+            "X-BAPI-TIMESTAMP" to timestamp,
+            "X-BAPI-SIGN" to signature,
+            "X-BAPI-RECV-WINDOW" to recvWindow
+        )
     }
 }

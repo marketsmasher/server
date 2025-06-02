@@ -10,7 +10,11 @@ import io.ktor.server.routing.*
 
 fun Route.subscriptionRoute(subscriptionService: SubscriptionService) {
     route("/subscriptions") {
-        post {
+        get {
+            call.respond(subscriptionService.allSubscriptions())
+        }
+
+        post("/add") {
             try {
                 val request = call.receive<SubscriptionRequest>()
                 subscriptionService.addSubscriber(request.strategyId, request.userId)
@@ -20,10 +24,6 @@ fun Route.subscriptionRoute(subscriptionService: SubscriptionService) {
             } catch (ex: JsonConvertException) {
                 call.respond(HttpStatusCode.BadRequest)
             }
-        }
-
-        get {
-            call.respond(subscriptionService.allSubscriptions())
         }
     }
 }

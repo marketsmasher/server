@@ -5,10 +5,6 @@ import com.marketsmasher.dto.UserRequest
 import com.marketsmasher.service.UserService
 import io.ktor.http.*
 import io.ktor.serialization.*
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -17,24 +13,7 @@ import java.util.UUID
 fun Route.userRoute(userService: UserService) {
     route("/users") {
 
-        get {
-            call.respond(userService.allUsers().map(User::toResponse))
-        }
-
-        post("/addUser") {
-            try {
-                val user = call.receive<UserRequest>().toModel()
-                userService.addUser(user)
-                call.respond(
-                    HttpStatusCode.Created,
-                    user.toResponse()
-                )
-            } catch (ex: IllegalStateException) {
-                call.respond(HttpStatusCode.BadRequest)
-            } catch (ex: JsonConvertException) {
-                call.respond(HttpStatusCode.BadRequest)
-            }
-        }
+        get { call.respond(userService.allUsers().map(User::toResponse)) }
 
         get("byId/{id}") {
             val id = call.parameters["id"]
@@ -68,8 +47,17 @@ fun Route.userRoute(userService: UserService) {
             call.respond(user.toResponse())
         }
 
+        post("/add") {
+            try {
+                val user = call.receive<UserRequest>().toModel()
+                userService.addUser(user)
+                call.respond(HttpStatusCode.Created, user.toResponse())
+            } catch (_: IllegalStateException) {
+                call.respond(HttpStatusCode.BadRequest)
+            } catch (_: JsonConvertException) {
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+
     }
 }
-
-private fun extractPrincipalId(call: ApplicationCall): String? =
-    call.principal<JWTPrincipal>()?.payload?.getClaim("id")?.asString()
