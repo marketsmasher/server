@@ -1,11 +1,9 @@
 package com.marketsmasher.util
 
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import java.util.UUID
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import java.util.*
 
 object Utils {
     fun extractPrincipalId(call: ApplicationCall): UUID =

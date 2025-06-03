@@ -29,7 +29,7 @@ fun Application.module() {
 
     val jwtService = JwtService(this, userService)
 
-    val bybitService = BybitService(userRepository)
+    val bybitService = BybitService()
 
     configureSerialization()
     configureSecurity(jwtService)

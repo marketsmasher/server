@@ -23,10 +23,10 @@ fun Application.configureRouting(
     routing {
         route("/api/v1") {
             authRoute(jwtService)
-            userRoute(userService)
+            userRoute(userService, bybitService)
             strategyRoute(strategyService)
             subscriptionRoute(subscriptionService)
-            bybitRoute(bybitService)
+            bybitRoute(bybitService, userService)
         }
     }
 }

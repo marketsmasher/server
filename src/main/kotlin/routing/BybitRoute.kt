@@ -2,13 +2,14 @@ package com.marketsmasher.routing
 
 import com.marketsmasher.dto.KlinesRequest
 import com.marketsmasher.service.BybitService
+import com.marketsmasher.service.UserService
 import com.marketsmasher.util.Utils
 import io.ktor.client.call.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.bybitRoute(bybitService: BybitService) {
+fun Route.bybitRoute(bybitService: BybitService, userService: UserService) {
     route("/bybit") {
         get("/market/kline") {
             val request = KlinesRequest(
@@ -26,11 +27,10 @@ fun Route.bybitRoute(bybitService: BybitService) {
 
         authenticate {
             get("/account/wallet-balance") {
-                println("!!!!!!")
                 val id = Utils.extractPrincipalId(call)
                 val coin = call.parameters["coin"]
                 println(id)
-                val response = bybitService.getWalletBalance(id, coin)
+                val response = bybitService.getWalletBalance(userService.userById(id)!!, coin)
                 call.respond(response.body<String>())
             }
         }

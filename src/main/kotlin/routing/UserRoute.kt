@@ -2,7 +2,9 @@ package com.marketsmasher.routing
 
 import com.marketsmasher.model.User
 import com.marketsmasher.dto.UserRequest
+import com.marketsmasher.service.BybitService
 import com.marketsmasher.service.UserService
+import io.ktor.client.HttpClient
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.server.request.*
@@ -10,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.UUID
 
-fun Route.userRoute(userService: UserService) {
+fun Route.userRoute(userService: UserService, bybitService: BybitService) {
     route("/users") {
 
         get { call.respond(userService.allUsers().map(User::toResponse)) }
@@ -50,6 +52,12 @@ fun Route.userRoute(userService: UserService) {
         post("/add") {
             try {
                 val user = call.receive<UserRequest>().toModel()
+
+                if (!bybitService.newUserEnteredValidCredentials(user)) {
+                    call.respond(HttpStatusCode.Unauthorized, "Invalid bybit credentials")
+                    return@post
+                }
+
                 userService.addUser(user)
                 call.respond(HttpStatusCode.Created, user.toResponse())
             } catch (_: IllegalStateException) {
