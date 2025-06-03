@@ -4,9 +4,11 @@ import com.marketsmasher.model.User
 import com.marketsmasher.dto.UserRequest
 import com.marketsmasher.service.BybitService
 import com.marketsmasher.service.UserService
+import com.marketsmasher.util.Utils
 import io.ktor.client.HttpClient
 import io.ktor.http.*
 import io.ktor.serialization.*
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -47,6 +49,13 @@ fun Route.userRoute(userService: UserService, bybitService: BybitService) {
             }
 
             call.respond(user.toResponse())
+        }
+
+        authenticate{
+            get("/byToken") {
+                val id = Utils.extractPrincipalId(call)
+                call.respond(userService.userById(id)!!.toResponse())
+            }
         }
 
         post("/add") {
