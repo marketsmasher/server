@@ -1,17 +1,20 @@
 package com.marketsmasher.service
 
 import com.marketsmasher.dto.KlinesRequest
+import com.marketsmasher.dto.OrderRequest
 import com.marketsmasher.model.User
+import com.marketsmasher.repository.SubscriptionRepository
 import io.ktor.client.*
-import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
-class BybitService() {
+class BybitService(
+    private val subscriptionRepository: SubscriptionRepository
+) {
     private val httpClient = HttpClient()
     private val url = "https://api.bybit.com/v5"
 
@@ -38,6 +41,15 @@ class BybitService() {
             parameter("accountType", "UNIFIED")
             coin?.let { parameter("coin", it) }
             headers { generateHeaders(user, "5000", queryString).forEach { (key, value) -> append(key, value) } }
+        }
+    }
+
+    fun placeOrders(orderRequest: OrderRequest) {
+        val subscribers = subscriptionRepository.subscribersById(orderRequest.strategyId)
+        if (subscribers != null) {
+            for (subscriber in subscribers) {
+                TODO()
+            }
         }
     }
 

@@ -26,7 +26,7 @@ fun Application.configureRouting(
             userRoute(userService, bybitService)
             strategyRoute(strategyService)
             subscriptionRoute(subscriptionService)
-            bybitRoute(bybitService, userService)
+            bybitRoute(bybitService, userService, strategyService)
         }
     }
 }
