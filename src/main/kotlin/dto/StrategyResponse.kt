@@ -9,5 +9,7 @@ data class StrategyResponse(
     @Contextual
     val id: UUID,
     val name: String,
-    val symbol: String
+    val symbol: String,
+    val publicName: String,
+    val description: String
 )

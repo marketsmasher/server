@@ -8,12 +8,17 @@ import java.util.UUID
 data class StrategyRequest(
     val name: String,
     val password: String,
-    val symbol: String
+    val symbol: String,
+    val publicName: String,
+    val description: String
 ) {
     fun toModel() = Strategy(
         id = UUID.randomUUID(),
         name = name,
         password = password,
-        symbol = symbol
+        symbol = symbol,
+        publicName = publicName,
+        description = description,
+        subscribers = mutableListOf()
     )
 }

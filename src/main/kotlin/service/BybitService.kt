@@ -3,17 +3,19 @@ package com.marketsmasher.service
 import com.marketsmasher.dto.KlinesRequest
 import com.marketsmasher.dto.OrderRequest
 import com.marketsmasher.model.User
-import com.marketsmasher.repository.SubscriptionRepository
+import com.marketsmasher.repository.StrategyRepository
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
 class BybitService(
-    private val subscriptionRepository: SubscriptionRepository
+    private val strategyRepository: StrategyRepository
 ) {
     private val httpClient = HttpClient()
     private val url = "https://api.bybit.com/v5"
@@ -31,8 +33,12 @@ class BybitService(
         }
     }
 
-    suspend fun newUserEnteredValidCredentials(user: User) =
-        getWalletBalance(user).status == HttpStatusCode.OK
+    suspend fun newUserEnteredValidCredentials(user: User): Boolean {
+        val jsonBody = getWalletBalance(user).bodyAsText()
+        val jsonElement = Json.parseToJsonElement(jsonBody)
+        return jsonElement.jsonObject["retCode"]?.toString() == "0"
+    }
+
 
     suspend fun getWalletBalance(user: User, coin: String? = null): HttpResponse {
         val queryString = "accountType=UNIFIED${coin?.let { "&coin=$it" } ?: ""}"
@@ -45,12 +51,12 @@ class BybitService(
     }
 
     fun placeOrders(orderRequest: OrderRequest) {
-        val subscribers = subscriptionRepository.subscribersById(orderRequest.strategyId)
-        if (subscribers != null) {
-            for (subscriber in subscribers) {
-                TODO()
-            }
-        }
+//        val subscribers = strategyRepository.subscribersById(orderRequest.strategyId)
+//        if (subscribers != null) {
+//            for (subscriber in subscribers) {
+//                TODO()
+//            }
+//        }
     }
 
     private fun generateHeaders(user: User, recvWindow: String, queryString: String): Map<String, String> {

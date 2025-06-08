@@ -2,7 +2,7 @@ package com.marketsmasher.service
 
 import com.marketsmasher.model.User
 import com.marketsmasher.repository.UserRepository
-import java.util.UUID
+import java.util.*
 
 class UserService(
     private val userRepository: UserRepository
@@ -13,13 +13,13 @@ class UserService(
 
     fun userByUsername(username: String) = userRepository.userByUsername(username)
 
-    fun addUser(user: User) {
+    fun addUser(user: User): User {
         if (userByUsername(user.username) != null)
             throw IllegalStateException("Cannot duplicate usernames!")
         if (userById(user.id) != null)
             throw IllegalStateException("Cannot duplicate ids! Bad luck, lol")
 
-        userRepository.addUser(user)
+        return userRepository.addUser(user)
     }
 
 }
