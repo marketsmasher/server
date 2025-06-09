@@ -30,16 +30,14 @@ fun Route.bybitRoute(
                 end = call.parameters["end"],
                 limit = call.parameters["limit"]
             )
-            println(request)
             val response = bybitService.getKlines(request)
             call.respond(response.body<String>())
         }
 
         authenticate {
             get("/account/wallet-balance") {
-                val id = Utils.extractPrincipalId(call)
+                val id = Utils.extractPrincipalId(call)!!
                 val coin = call.parameters["coin"]
-                println(id)
                 val response = bybitService.getWalletBalance(userService.userById(id)!!, coin)
                 call.respond(response.body<String>())
             }

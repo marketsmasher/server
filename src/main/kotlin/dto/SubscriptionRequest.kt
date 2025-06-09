@@ -14,7 +14,6 @@ data class SubscriptionRequest(
 ) {
     fun toModel(userId: UUID) = Subscription(
         userId = userId,
-        strategyId = strategyId,
         baseCoinQty = baseCoinQty,
         quoteCoinQty = quoteCoinQty
     )

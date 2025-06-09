@@ -10,7 +10,7 @@ class Strategy(
     val symbol: String,
     val publicName: String,
     val description: String,
-    val subscribers: MutableList<UUID>
+    val subscriptions: MutableList<Subscription>
 ) {
     fun toResponse() = StrategyResponse(id, name, symbol, publicName, description)
 }

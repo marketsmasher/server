@@ -19,6 +19,6 @@ data class StrategyRequest(
         symbol = symbol,
         publicName = publicName,
         description = description,
-        subscribers = mutableListOf()
+        subscriptions = mutableListOf()
     )
 }

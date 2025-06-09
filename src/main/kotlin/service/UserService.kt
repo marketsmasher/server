@@ -16,8 +16,6 @@ class UserService(
     fun addUser(user: User): User {
         if (userByUsername(user.username) != null)
             throw IllegalStateException("Cannot duplicate usernames!")
-        if (userById(user.id) != null)
-            throw IllegalStateException("Cannot duplicate ids! Bad luck, lol")
 
         return userRepository.addUser(user)
     }

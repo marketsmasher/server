@@ -6,6 +6,6 @@ import io.ktor.server.auth.jwt.*
 import java.util.*
 
 object Utils {
-    fun extractPrincipalId(call: ApplicationCall): UUID =
-        UUID.fromString(call.principal<JWTPrincipal>()!!.payload.getClaim("id").asString())
+    fun extractPrincipalId(call: ApplicationCall): UUID? =
+        UUID.fromString(call.principal<JWTPrincipal>()?.payload?.getClaim("id")?.asString())
 }

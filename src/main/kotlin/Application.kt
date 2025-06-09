@@ -20,7 +20,7 @@ fun Application.module() {
     val userService = UserService(userRepository)
 
     val strategyRepository = StrategyRepository()
-    val strategyService = StrategyService(strategyRepository, userRepository)
+    val strategyService = StrategyService(strategyRepository, userService)
 
     val jwtService = JwtService(this, userService)
 

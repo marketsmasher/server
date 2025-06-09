@@ -57,7 +57,7 @@ fun Route.userRoute(userService: UserService, bybitService: BybitService) {
 
         authenticate {
             get("/byToken") {
-                val id = Utils.extractPrincipalId(call)
+                val id = Utils.extractPrincipalId(call)!!
                 call.respond(userService.userById(id)!!.toResponse())
             }
         }
@@ -65,15 +65,14 @@ fun Route.userRoute(userService: UserService, bybitService: BybitService) {
         post("/add") {
             try {
                 val user = call.receive<UserRequest>().toModel()
-                if (!bybitService.newUserEnteredValidCredentials(user)) {
-                    throw BadRequestException("Invalid bybit credentials")
-                }
-                call.respond(HttpStatusCode.Created, userService.addUser(user).toResponse())
+                if (!bybitService.newUserEnteredValidCredentials(user))
+                    call.respond(HttpStatusCode.BadRequest, "Invalid bybit credentials")
 
-            } catch (ex: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+                val response = userService.addUser(user).toResponse()
+                call.respond(HttpStatusCode.Created, response)
+
             } catch (ex: IllegalStateException) {
-                call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+                call.respond(HttpStatusCode.Conflict, ex.message.toString())
             } catch (_: SerializationException) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid bybit credentials")
             }
