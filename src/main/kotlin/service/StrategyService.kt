@@ -16,37 +16,45 @@ class StrategyService(
     fun strategiesBySymbol(symbol: String) = strategyRepository.strategiesBySymbol(symbol)
 
     fun addStrategy(strategy: Strategy): Strategy {
-        if (strategyByName(strategy.name) != null)
-            throw IllegalStateException("Cannot duplicate strategy names!")
-
+        check(strategyByName(strategy.name) != null) {
+            "Cannot duplicate strategy names!"
+        }
         return strategyRepository.addStrategy(strategy)
     }
 
+    fun strategiesByUser(userId: UUID) = allStrategies().filter { it.allSubscriptions().any { it.userId == userId } }
+
+    fun userBasisPointsSum(userId: UUID) = allStrategies()
+        .mapNotNull { it.allSubscriptions().firstOrNull { it.userId == userId } }
+        .sumOf { it.shareBasisPoint }
+
     fun addSubscription(strategyId: UUID, subscription: Subscription): Subscription {
+        val strategy = strategyById(strategyId)
+        if (strategy == null)
+            throw NotFoundException("Strategy with given id not found")
+
         val user = userService.userById(subscription.userId)
         if (user == null)
             throw NotFoundException("User with given id not found")
 
-        val strategy = strategyById(strategyId)
-        if (strategy == null)
-            throw NotFoundException("Strategy with given id not found")
+        println(strategy.allSubscriptions().firstOrNull { it.userId == user.id })
+        println(strategy.allSubscriptions().any { it.userId == user.id })
+        check(!strategy.allSubscriptions().any { it.userId == user.id }) {
+            "User ${user.toResponse()} is already subscribed to this strategy"
+        }
 
-        if (strategy.subscriptions.contains(subscription))
-            throw IllegalStateException("User cannot be subscribed on the same strategy several times!")
+        check(userBasisPointsSum(user.id) + subscription.shareBasisPoint <= 10000) {
+            "Cannot allocate more than 100% of funds"
+        }
 
-        return subscription.also { strategy.subscriptions.add(it) }
+        return subscription.also { strategy.addSubscription(subscription) }
     }
 
-    fun removeSubscription(strategyId: UUID, userId: UUID): HttpStatusCode {
+    fun removeSubscription(strategyId: UUID, userId: UUID): Boolean {
         if (userService.userById(userId) == null)
             throw NotFoundException("User with given id not found")
 
-        val strategy = strategyById(strategyId)
-        if (strategy == null)
-            throw NotFoundException("Strategy with given id not found")
-
-        strategy.subscriptions.removeAll { it.userId == userId }
-
-        return HttpStatusCode.NoContent
+        return strategyById(strategyId)?.removeSubscriber(userId)
+            ?: throw NotFoundException("Strategy with given id not found")
     }
 }

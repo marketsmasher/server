@@ -2,6 +2,8 @@ package com.marketsmasher.repository
 
 import com.marketsmasher.dto.StrategyRequest
 import com.marketsmasher.model.Strategy
+import com.marketsmasher.model.Subscription
+import io.ktor.server.plugins.NotFoundException
 import java.util.UUID
 
 class StrategyRepository {
@@ -36,9 +38,16 @@ class StrategyRepository {
         ).toModel()
     )
 
-    fun allStrategies() = strategies
+    fun allStrategies() = strategies.toList()
     fun strategyById(id: UUID) = strategies.firstOrNull { it.id == id }
     fun strategyByName(name: String) = strategies.firstOrNull { it.name == name }
     fun strategiesBySymbol(symbol: String) = strategies.filter { it.symbol == symbol }
     fun addStrategy(strategy: Strategy) = strategy.also { strategies.add(it) }
+    fun addSubscription(strategyId: UUID, subscription: Subscription) =
+        strategyById(strategyId)?.addSubscription(subscription)
+            ?: throw NotFoundException("Strategy with provided id doesn't exist")
+
+    fun removeSubscriber(strategyId: UUID, userId: UUID) =
+        strategyById(strategyId)?.removeSubscriber(userId)
+            ?: throw NotFoundException("Strategy with provided id doesn't exist")
 }

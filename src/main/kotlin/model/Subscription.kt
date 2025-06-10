@@ -1,9 +1,12 @@
 package com.marketsmasher.model
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
-class Subscription(
+@Serializable
+data class Subscription(
+    @Contextual
     val userId: UUID,
-    val baseCoinQty: Double,
-    val quoteCoinQty: Double
+    val shareBasisPoint: Int
 )

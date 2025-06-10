@@ -24,19 +24,23 @@ fun Route.userRoute(userService: UserService, bybitService: BybitService) {
         }
 
         get("/byId/{id}") {
-            val id = call.parameters["id"]
-            if (id == null) {
-                call.respond(HttpStatusCode.BadRequest, "Id must be provided")
-                return@get
-            }
+            try {
+                val idString = call.parameters["id"]
+                if (idString == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Id must be provided")
+                    return@get
+                }
 
-            val user = userService.userById(UUID.fromString(id))
-            if (user == null) {
-                call.respond(HttpStatusCode.NotFound, "User with given id doesn't exist")
-                return@get
-            }
+                val user = userService.userById(UUID.fromString(idString))
+                if (user == null) {
+                    call.respond(HttpStatusCode.NotFound, "User with given id doesn't exist")
+                    return@get
+                }
 
-            call.respond(user.toResponse())
+                call.respond(user.toResponse())
+            } catch (ex: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+            }
         }
 
         get("/byUsername/{username}") {

@@ -9,12 +9,10 @@ import java.util.*
 data class SubscriptionRequest(
     @Contextual
     val strategyId: UUID,
-    val baseCoinQty: Double,
-    val quoteCoinQty: Double
+    val shareBasisPoint: Int
 ) {
     fun toModel(userId: UUID) = Subscription(
         userId = userId,
-        baseCoinQty = baseCoinQty,
-        quoteCoinQty = quoteCoinQty
+        shareBasisPoint = shareBasisPoint
     )
 }

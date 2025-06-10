@@ -1,7 +1,7 @@
 package com.marketsmasher.model
 
 import com.marketsmasher.dto.StrategyResponse
-import java.util.UUID
+import java.util.*
 
 class Strategy(
     val id: UUID,
@@ -10,7 +10,17 @@ class Strategy(
     val symbol: String,
     val publicName: String,
     val description: String,
-    val subscriptions: MutableList<Subscription>
+    private val subscriptions: MutableList<Subscription>
 ) {
-    fun toResponse() = StrategyResponse(id, name, symbol, publicName, description)
+    fun toResponse() = StrategyResponse(
+        id = id,
+        name = name,
+        symbol = symbol,
+        publicName = publicName,
+        description = description
+    )
+
+    fun allSubscriptions() = subscriptions.toList()
+    fun addSubscription(subscription: Subscription) = subscription.also { subscriptions.add(it) }
+    fun removeSubscriber(userId: UUID) = subscriptions.removeIf { it.userId == userId }
 }

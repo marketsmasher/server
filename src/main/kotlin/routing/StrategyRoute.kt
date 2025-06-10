@@ -1,6 +1,7 @@
 package com.marketsmasher.routing
 
 import com.marketsmasher.dto.StrategyRequest
+import com.marketsmasher.dto.StrategyResponse
 import com.marketsmasher.dto.SubscriptionRequest
 import com.marketsmasher.model.Strategy
 import com.marketsmasher.service.StrategyService
@@ -11,6 +12,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.util.UUID
 
 fun Route.strategyRoute(strategyService: StrategyService) {
     route("/strategies") {
@@ -25,10 +27,10 @@ fun Route.strategyRoute(strategyService: StrategyService) {
                 val response = strategyService.addStrategy(strategy).toResponse()
                 call.respond(HttpStatusCode.Created, response)
 
-            } catch (ex: IllegalStateException) {
-                call.respond(HttpStatusCode.Conflict, ex.message.toString())
             } catch (ex: BadRequestException) {
                 call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+            } catch (ex: IllegalStateException) {
+                call.respond(HttpStatusCode.Conflict, ex.message.toString())
             }
         }
 
@@ -46,14 +48,41 @@ fun Route.strategyRoute(strategyService: StrategyService) {
                     call.respond(HttpStatusCode.BadRequest, ex.message.toString())
                 } catch (ex: NotFoundException) {
                     call.respond(HttpStatusCode.NotFound, ex.message.toString())
+                } catch (ex: IllegalStateException) {
+                    call.respond(HttpStatusCode.Conflict, ex.message.toString())
                 }
             }
 
-            delete("/unsubscribe") {  }
+            delete("/unsubscribe/{strategyId}") {
+                try {
+                    println("!!!!!")
+                    val strategyId = UUID.fromString(call.parameters["strategyId"])
+                    println(strategyId)
+                    println("!!!!!")
+                    if (strategyId == null) {
+                        call.respond(HttpStatusCode.BadRequest, "Strategy id must be provided")
+                        return@delete
+                    }
+
+                    val userId = Utils.extractPrincipalId(call)!!
+                    if (strategyService.removeSubscription(strategyId, userId))
+                        call.respond(HttpStatusCode.NoContent)
+                    else
+                        call.respond(HttpStatusCode.NotFound, "User hasn't been subscribed")
+
+
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+                } catch (ex: NotFoundException) {
+                    call.respond(HttpStatusCode.NotFound, ex.message.toString())
+                }
+            }
 
             get("/subscribed") {
-                val userId = Utils.extractPrincipalId(call)
-
+                val response = strategyService
+                    .strategiesByUser(Utils.extractPrincipalId(call)!!)
+                    .map { it.toResponse() }
+                call.respond(response)
             }
         }
     }

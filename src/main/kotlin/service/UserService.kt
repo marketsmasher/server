@@ -19,5 +19,4 @@ class UserService(
 
         return userRepository.addUser(user)
     }
-
 }
