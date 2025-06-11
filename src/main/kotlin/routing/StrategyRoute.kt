@@ -79,10 +79,12 @@ fun Route.strategyRoute(strategyService: StrategyService) {
             }
 
             get("/subscribed") {
-                val response = strategyService
-                    .strategiesByUser(Utils.extractPrincipalId(call)!!)
-                    .map { it.toResponse() }
-                call.respond(response)
+                call.respond(
+                    strategyService
+                        .strategiesByUserId(Utils.extractPrincipalId(call)!!)
+                        .mapNotNull { strategyService.strategyById(it) }
+                        .map { it.toResponse() }
+                )
             }
         }
     }

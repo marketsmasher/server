@@ -3,7 +3,6 @@ package com.marketsmasher.service
 import com.marketsmasher.model.Strategy
 import com.marketsmasher.model.Subscription
 import com.marketsmasher.repository.StrategyRepository
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.*
 import java.util.*
 
@@ -22,10 +21,12 @@ class StrategyService(
         return strategyRepository.addStrategy(strategy)
     }
 
-    fun strategiesByUser(userId: UUID) = allStrategies().filter { it.allSubscriptions().any { it.userId == userId } }
+    fun strategiesByUserId(userId: UUID) = allStrategies()
+        .filter { strategy -> strategy.allSubscriptions().any { it.userId == userId } }
+        .map { it.id }
 
     fun userBasisPointsSum(userId: UUID) = allStrategies()
-        .mapNotNull { it.allSubscriptions().firstOrNull { it.userId == userId } }
+        .mapNotNull { strategy -> strategy.allSubscriptions().firstOrNull { it.userId == userId } }
         .sumOf { it.shareBasisPoint }
 
     fun addSubscription(strategyId: UUID, subscription: Subscription): Subscription {
@@ -37,8 +38,6 @@ class StrategyService(
         if (user == null)
             throw NotFoundException("User with given id not found")
 
-        println(strategy.allSubscriptions().firstOrNull { it.userId == user.id })
-        println(strategy.allSubscriptions().any { it.userId == user.id })
         check(!strategy.allSubscriptions().any { it.userId == user.id }) {
             "User ${user.toResponse()} is already subscribed to this strategy"
         }
@@ -56,5 +55,14 @@ class StrategyService(
 
         return strategyById(strategyId)?.removeSubscriber(userId)
             ?: throw NotFoundException("Strategy with given id not found")
+    }
+
+    fun unsubscribeUserFromEverything(userId: UUID) {
+        if (userService.userById(userId) == null)
+            throw NotFoundException("User with given id not found")
+
+        strategiesByUserId(userId)
+            .mapNotNull { strategyById(it) }
+            .map { it.removeSubscriber(userId) }
     }
 }

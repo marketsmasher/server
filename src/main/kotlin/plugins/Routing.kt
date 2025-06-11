@@ -20,7 +20,7 @@ fun Application.configureRouting(
     routing {
         route("/api/v1") {
             authRoute(jwtService)
-            userRoute(userService, bybitService)
+            userRoute(userService, bybitService, strategyService)
             strategyRoute(strategyService)
             bybitRoute(bybitService, userService, strategyService)
         }
