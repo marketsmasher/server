@@ -10,6 +10,7 @@ import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.server.auth.*
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -43,21 +44,21 @@ fun Route.bybitRoute(
             }
         }
 
-        post("/order/create") {
-            try {
-                val orderRequest = call.receive<OrderRequest>()
-                if (strategyService.strategyById(orderRequest.strategyId) == null) {
-                    call.respond(HttpStatusCode.NotFound, "Strategy with given id doesn't exist")
-                    return@post
-                }
-                if (abs(orderRequest.confidence) > 1.0) {
-                    call.respond(HttpStatusCode.BadRequest, "Confidence must be between -1.0 and 1.0")
-                    return@post
-                }
-                bybitService.placeOrders(orderRequest)
-            } catch (_: JsonConvertException) {
-                call.respond(HttpStatusCode.BadRequest, "Parsing error occurred")
-            }
-        }
+//        post("/order/create") {
+//            try {
+//                val orderRequest = call.receive<OrderRequest>()
+//                if (strategyService.strategyById(orderRequest.strategyId) == null) {
+//                    call.respond(HttpStatusCode.NotFound, "Strategy with given id doesn't exist")
+//                    return@post
+//                }
+//                if (abs(orderRequest.confidence) > 1.0) {
+//                    call.respond(HttpStatusCode.BadRequest, "Confidence must be between -1.0 and 1.0")
+//                    return@post
+//                }
+//                bybitService.placeOrders(orderRequest)
+//            } catch (_: BadRequestException) {
+//                call.respond(HttpStatusCode.BadRequest, "Parsing error occurred")
+//            }
+//        }
     }
 }
