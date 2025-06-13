@@ -32,6 +32,7 @@ fun Route.bybitRoute(
                 limit = call.parameters["limit"]
             )
             val response = bybitService.getKlines(request)
+            call.response.header("Content-Type", "application/json")
             call.respond(response.body<String>())
         }
 
@@ -40,6 +41,7 @@ fun Route.bybitRoute(
                 val id = Utils.extractPrincipalId(call)!!
                 val coin = call.parameters["coin"]
                 val response = bybitService.getWalletBalance(userService.userById(id)!!, coin)
+                call.response.header("Content-Type", "application/json")
                 call.respond(response.body<String>())
             }
         }

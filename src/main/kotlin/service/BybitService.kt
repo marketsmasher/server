@@ -46,7 +46,7 @@ class BybitService(
         return httpClient.get("$url/account/wallet-balance") {
             parameter("accountType", "UNIFIED")
             coin?.let { parameter("coin", it) }
-            headers { generateHeaders(user, "5000", queryString).forEach { (key, value) -> append(key, value) } }
+            headers { generateHeaders(user, "10000", queryString).forEach { (key, value) -> append(key, value) } }
         }
     }
 
