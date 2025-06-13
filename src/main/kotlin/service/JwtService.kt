@@ -33,7 +33,7 @@ class JwtService(private val application: Application, private val userService: 
                 .withAudience(audience)
                 .withIssuer(issuer)
                 .withClaim("id", foundUser.id.toString())
-                .withExpiresAt(Date(System.currentTimeMillis() + 3_600_00))
+                .withExpiresAt(Date(System.currentTimeMillis() + 3_600_000))
                 .sign(Algorithm.HMAC256(secret))
         else
             null
