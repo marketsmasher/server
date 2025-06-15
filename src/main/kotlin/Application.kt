@@ -24,7 +24,7 @@ fun Application.module() {
 
     val jwtService = JwtService(this, userService)
 
-    val bybitService = BybitService(strategyRepository)
+    val bybitService = BybitService(strategyService, userService)
 
     configureSerialization()
     configureSecurity(jwtService)

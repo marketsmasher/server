@@ -2,12 +2,16 @@ package com.marketsmasher.service
 
 import com.marketsmasher.dto.KlinesRequest
 import com.marketsmasher.dto.OrderRequest
+import com.marketsmasher.model.Order
 import com.marketsmasher.model.User
 import com.marketsmasher.repository.StrategyRepository
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import kotlinx.serialization.SerializationException
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.server.application.*
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import javax.crypto.Mac
@@ -15,10 +19,15 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
 class BybitService(
-    private val strategyRepository: StrategyRepository
+    private val strategyService: StrategyService,
+    private val userService: UserService
 ) {
     private val httpClient = HttpClient()
-    private val url = "https://api.bybit.com/v5"
+    private val url = when (System.getenv()["NETWORK_NAME"]) {
+        "mainnet" -> "https://api.bybit.com/v5"
+        "testnet" -> "https://api-testnet.bybit.com/v5"
+        else -> "https://api-testnet.bybit.com/v5"
+    }.also { println("Market api: $it") }
 
     suspend fun getKlines(request: KlinesRequest): HttpResponse = httpClient.get("$url/market/kline") {
         url {
@@ -39,24 +48,35 @@ class BybitService(
         return jsonElement.jsonObject["retCode"]?.toString() == "0"
     }
 
-
     suspend fun getWalletBalance(user: User, coin: String? = null): HttpResponse {
         val queryString = "accountType=UNIFIED${coin?.let { "&coin=$it" } ?: ""}"
 
         return httpClient.get("$url/account/wallet-balance") {
             parameter("accountType", "UNIFIED")
             coin?.let { parameter("coin", it) }
-            headers { generateHeaders(user, "10000", queryString).forEach { (key, value) -> append(key, value) } }
+            headers {
+                generateHeaders(
+                    user,
+                    "10000", queryString
+                ).forEach { (key, value) -> append(key, value) }
+            }
         }
     }
 
-    fun placeOrders(orderRequest: OrderRequest) {
-//        val subscribers = strategyRepository.subscribersById(orderRequest.strategyId)
-//        if (subscribers != null) {
-//            for (subscriber in subscribers) {
-//                TODO()
-//            }
-//        }
+    suspend fun placeOrders(orderRequest: OrderRequest): List<HttpResponse> {
+        val strategy = strategyService.strategyByName(orderRequest.strategyName)
+            ?: throw NotFoundException("Strategy with such name doesn't exist")
+
+        return strategy.allSubscriptions().map {
+            val order = orderRequest.toModel(strategy.symbol, it.shareBasisPoint / 10000.0)
+            val user = userService.userById(it.userId) ?: error("User not found")
+
+            httpClient.post("$url/order/create") {
+                contentType(ContentType.Application.Json)
+                setBody(order)
+                headers { generateHeaders(user, "10000", Json.encodeToString(order)) }
+            }
+        }
     }
 
     private fun generateHeaders(user: User, recvWindow: String, queryString: String): Map<String, String> {

@@ -1,6 +1,8 @@
 package com.marketsmasher.model
 
+import kotlinx.serialization.Serializable
 
+@Serializable
 class Order(
     val category: String,
     val symbol: String,

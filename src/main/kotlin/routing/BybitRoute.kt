@@ -7,11 +7,10 @@ import com.marketsmasher.service.StrategyService
 import com.marketsmasher.service.UserService
 import com.marketsmasher.util.Utils
 import io.ktor.client.call.*
-import io.ktor.http.*
-import io.ktor.serialization.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.BadRequestException
-import io.ktor.server.request.*
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlin.math.abs
@@ -46,21 +45,23 @@ fun Route.bybitRoute(
             }
         }
 
-//        post("/order/create") {
-//            try {
-//                val orderRequest = call.receive<OrderRequest>()
-//                if (strategyService.strategyById(orderRequest.strategyId) == null) {
-//                    call.respond(HttpStatusCode.NotFound, "Strategy with given id doesn't exist")
-//                    return@post
-//                }
-//                if (abs(orderRequest.confidence) > 1.0) {
-//                    call.respond(HttpStatusCode.BadRequest, "Confidence must be between -1.0 and 1.0")
-//                    return@post
-//                }
-//                bybitService.placeOrders(orderRequest)
-//            } catch (_: BadRequestException) {
-//                call.respond(HttpStatusCode.BadRequest, "Parsing error occurred")
-//            }
-//        }
+        post("/order/create") {
+            try {
+                val orderRequest = call.receive<OrderRequest>()
+                if (strategyService.strategyByName(orderRequest.strategyName) == null) {
+                    call.respond(HttpStatusCode.NotFound, "Strategy with given id doesn't exist")
+                    return@post
+                }
+
+                if (abs(orderRequest.confidence) > 1.0) {
+                    call.respond(HttpStatusCode.BadRequest, "Confidence must be between -1.0 and 1.0")
+                    return@post
+                }
+
+                call.respond(bybitService.placeOrders(orderRequest).map { it.body<String>() })
+            } catch (ex: BadRequestException) {
+                call.respond(HttpStatusCode.BadRequest, ex.message.toString())
+            }
+        }
     }
 }

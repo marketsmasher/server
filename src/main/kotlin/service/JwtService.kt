@@ -10,8 +10,10 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import java.util.Date
 import java.util.UUID
 
-class JwtService(private val application: Application, private val userService: UserService) {
-
+class JwtService(
+    private val application: Application,
+    private val userService: UserService
+) {
     private val secret = getConfigProperty("jwt.secret")
     private val issuer = getConfigProperty("jwt.issuer")
     private val audience = getConfigProperty("jwt.audience")
